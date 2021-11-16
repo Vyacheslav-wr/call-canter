@@ -8,7 +8,6 @@ public class Client extends Thread{
     private Integer patience;
     private Integer number;
     private CallCenter callCenter;
-    private Operator operator;
     private Integer problemType;
     private Logger logger = LoggerFactory.getLogger(Client.class);
 
@@ -28,22 +27,21 @@ public class Client extends Thread{
 
     @Override
     public void run() {
-        try{
-            if(patience != 0){
-                sleep(100);
-                logger.info("Client {} make a call", number);
-                this.operator = callCenter.makeACall(this);
-
-                if(operator == null){
-                    patience--;
-                    run();
+        try {
+            while (true) {
+                if (patience != 0) {
+                    logger.info("Client {} make a call", number);
+                    Operator operator = callCenter.makeACall(this);
+                    if (operator == null) {
+                        patience--;
+                    } else {
+                        break;
+                    }
                 }
                 else{
-                    operator.run();
+                    logger.info("Client {} get angry and stop trying", number);
+                    break;
                 }
-            }
-            else{
-                logger.info("Client {} get angry and stop trying", number);
             }
         }
         catch (InterruptedException ex){
@@ -54,5 +52,9 @@ public class Client extends Thread{
 
     public Integer getNumber() {
         return number;
+    }
+
+    public Integer getPatience() {
+        return patience;
     }
 }

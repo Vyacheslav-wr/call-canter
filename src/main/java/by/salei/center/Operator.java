@@ -16,6 +16,7 @@ public class Operator extends Thread{
     private Integer number;
     private boolean busy;
     private Logger logger = LoggerFactory.getLogger(Client.class);
+    private CallCenter callCenter;
 
     public Operator(){
 
@@ -28,33 +29,44 @@ public class Operator extends Thread{
 
     @Override
     public void run() {
-        logger.info("Operator {} take a call of client {}", number, client.getNumber());
         try{
-            if(Math.random()*100 > 40){
-                tryToExchange();
+            while(true){
+                sleep(100);
+                if(this.client == null){
+                    break;
+                }
+                logger.info("Operator {} take a call of client {}", number, client.getNumber());
+                if(Math.random()*100 > 40){
+                    tryToExchange();
+                }
+                solveClientProblem();
+                logger.info("Operator {} solved a problem(Type {}) of client {}", number, client.getProblemType() ,client.getNumber());
+                busy = false;
+                this.client=null;
+                semaphore.release();
             }
-            switch (client.getProblemType()) {
-                case 1 -> {
-                    sleep(1000);
-                }
-                case 2 -> {
-                    sleep(2000);
-                }
-                case 3 -> {
-                    sleep(3000);
-                }
-                case 4 -> {
-                    sleep(4000);
-                }
-                default -> sleep(100);
-            }
-        logger.info("Operator {} solved a problem(Type {}) of client {}", number, client.getProblemType() ,client.getNumber());
-        busy = false;
-        semaphore.release();
         }
         catch (InterruptedException ex){
             interrupt();
             logger.error("Operator {} resigned", number);
+        }
+    }
+
+    private void solveClientProblem() throws InterruptedException {
+        switch (client.getProblemType()) {
+            case 1 -> {
+                sleep(1000);
+            }
+            case 2 -> {
+                sleep(2000);
+            }
+            case 3 -> {
+                sleep(3000);
+            }
+            case 4 -> {
+                sleep(4000);
+            }
+            default -> sleep(100);
         }
     }
 
@@ -83,5 +95,9 @@ public class Operator extends Thread{
 
     public void setClient(Client client) {
         this.client = client;
+    }
+
+    public void setCallCenter(CallCenter callCenter) {
+        this.callCenter = callCenter;
     }
 }

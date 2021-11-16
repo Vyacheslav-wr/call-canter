@@ -1,6 +1,5 @@
 package by.salei.center;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -8,37 +7,36 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class CallCenter {
 
-    List<Operator> operators;
-    List<Client> awaitQueue = new ArrayList<>();
-    Semaphore semaphore;
-    ReentrantLock lock = new ReentrantLock();
+    private List<Operator> operators;
+    private Semaphore semaphore;
+    private  final ReentrantLock lock = new ReentrantLock();
 
     public CallCenter(List<Operator> operators) {
         this.operators = operators;
         this.semaphore = new Semaphore(operators.size());
-        operators.forEach(operator -> operator.setSemaphore(semaphore));
+        operators.forEach(operator -> {
+            operator.setSemaphore(semaphore);
+            operator.setCallCenter(this);
+        });
     }
 
-    private Operator getOperator(Client client) {
+    private Operator connect(Client client) {
+        lock.lock();
         Operator operator = operators
                 .stream()
                 .filter(operator1 -> !operator1.getBusyness())
                 .findFirst()
                 .get();
-
-        operator.isBusy();
         operator.setClient(client);
-        awaitQueue.remove(client);
+        operator.isBusy();
+        lock.unlock();
         return operator;
     }
 
     public Operator makeACall(Client client) throws InterruptedException{
-        if(!semaphore.tryAcquire(1000, TimeUnit.MILLISECONDS)){
-            return  null;
+        if(!semaphore.tryAcquire(1000,TimeUnit.MILLISECONDS)){
+            return null;
         }
-        lock.lock();
-        Operator operator = getOperator(client);
-        lock.unlock();
-        return operator;
+        return connect(client);
     }
 }

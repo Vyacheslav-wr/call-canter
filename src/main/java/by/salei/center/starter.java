@@ -10,6 +10,7 @@ public class starter {
         List<Operator> operators = getOperators(exchanger);
         CallCenter callCenter = new CallCenter(operators);
         List<Client> clients = createClients(callCenter);
+        operators.forEach(Thread::start);
         clients.forEach(Thread::start);
     }
 
